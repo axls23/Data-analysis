@@ -36,7 +36,6 @@ But unless you provide --model resnet50 or similar at the command line, the defa
 ```bash
 python expression-detection-optimized.py --mode train --data_dir "dataset/train" --epochs 10 --batch_size 32  
 ```
-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
 ### Parameters:
 - `--mode`: Set to `train` for training
 - `--data_dir`: Path to your dataset folder
