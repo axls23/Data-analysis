@@ -1,0 +1,6 @@
+dataset/
+inference_results/
+inference_results_test/
+snapshots/
+__pycache__/
+
