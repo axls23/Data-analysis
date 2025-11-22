@@ -480,7 +480,7 @@ def tune_hyperparams(model_fn, train_loader, val_loader, location_tag):
         train_loader, val_loader: dataloaders for train/val
         location_tag: str, workflow tracking tag
     Returns:
-        best_params: dict, best hyperparameters found
+        best_params: dict, the best hyperparameters found
     """
     import optuna
 
