@@ -26,6 +26,7 @@ from pathlib import Path
 from tqdm import tqdm
 import json
 import shutil
+import torch
 
 # Optional: MTCNN for better face detection
 try:
@@ -36,17 +37,53 @@ except ImportError:
     print("[INFO] MTCNN not available. Using Haar Cascade. Install with: pip install facenet-pytorch")
 
 
+def get_device_info():
+    """Get device information for GPU/CPU usage"""
+    info = {
+        'device': 'cpu',
+        'name': 'CPU',
+        'gpu_available': False,
+        'cuda_available': torch.cuda.is_available(),
+        'device_count': 0
+    }
+    
+    if torch.cuda.is_available():
+        info['gpu_available'] = True
+        info['device_count'] = torch.cuda.device_count()
+        
+        # Prefer NVIDIA GPU (device index 0)
+        try:
+            torch.cuda.set_device(0)
+            device_name = torch.cuda.get_device_name(0)
+            
+            # Check if it's NVIDIA GPU
+            if 'nvidia' in device_name.lower() or 'tesla' in device_name.lower() or 'geforce' in device_name.lower():
+                info['device'] = 'cuda:0'
+                info['name'] = f"NVIDIA GPU - {device_name}"
+            else:
+                # Other GPU, still use it
+                info['device'] = 'cuda:0'
+                info['name'] = f"GPU - {device_name}"
+        except Exception as e:
+            print(f"[WARNING] Error detecting GPU: {e}")
+            info['name'] = "CPU (GPU detection failed)"
+    
+    return info
+
+
 class FaceDetector:
     """Unified face detection interface supporting multiple backends"""
     
-    def __init__(self, method='haar'):
+    def __init__(self, method='haar', device_info=None):
         """
         Initialize face detector
         
         Args:
             method: 'haar' or 'mtcnn'
+            device_info: Device information dict with 'device' key
         """
         self.method = method
+        self.device = device_info['device'] if device_info else 'cpu'
         
         if method == 'mtcnn':
             if not MTCNN_AVAILABLE:
@@ -59,7 +96,7 @@ class FaceDetector:
                     margin=20,
                     keep_all=False,
                     post_process=False,
-                    device='cuda' if cv2.cuda.getCudaEnabledDeviceCount() > 0 else 'cpu'
+                    device=self.device
                 )
         else:
             self._init_haar()
@@ -249,7 +286,7 @@ def preprocess_image(image_path, output_path, detector, margin=0.2, target_size=
 
 
 def process_dataset(input_dir, output_dir, detector_method='haar', margin=0.2, 
-                    target_size=(224, 224), skip_existing=False):
+                    target_size=(224, 224), skip_existing=False, device_info=None):
     """
     Process entire dataset
     
@@ -260,6 +297,7 @@ def process_dataset(input_dir, output_dir, detector_method='haar', margin=0.2,
         margin: Margin around detected face
         target_size: Target image size
         skip_existing: Skip already processed images
+        device_info: Device information dict
     
     Returns:
         stats: Dictionary with processing statistics
@@ -268,8 +306,8 @@ def process_dataset(input_dir, output_dir, detector_method='haar', margin=0.2,
     output_path = Path(output_dir)
     
     # Initialize detector
-    print(f"[INFO] Initializing {detector_method.upper()} face detector...")
-    detector = FaceDetector(method=detector_method)
+    print(f"[INFO] Initializing {detector_method.upper()} face detector on {device_info['name']}...")
+    detector = FaceDetector(method=detector_method, device_info=device_info)
     
     # Find all images in emotion folders
     emotion_folders = ['angry', 'disgust', 'fear', 'happy', 'neutral', 'sad', 'surprised']
@@ -431,6 +469,9 @@ Examples:
     
     args = parser.parse_args()
     
+    # Get device information
+    device_info = get_device_info()
+    
     # Validate input directory
     if not os.path.exists(args.input_dir):
         print(f"[ERROR] Input directory does not exist: {args.input_dir}")
@@ -442,6 +483,9 @@ Examples:
     print(f"Input directory:  {args.input_dir}")
     print(f"Output directory: {args.output_dir}")
     print(f"Face detector:    {args.detector.upper()}")
+    print(f"Compute device:   {device_info['name']}")
+    if device_info['gpu_available']:
+        print(f"GPU available:    Yes ({device_info['device_count']} GPU(s))")
     print(f"Margin:           {args.margin}")
     print(f"Target size:      {args.size}x{args.size}")
     print(f"Skip existing:    {args.skip_existing}")
@@ -454,7 +498,8 @@ Examples:
         detector_method=args.detector,
         margin=args.margin,
         target_size=(args.size, args.size),
-        skip_existing=args.skip_existing
+        skip_existing=args.skip_existing,
+        device_info=device_info
     )
     
     # Print statistics

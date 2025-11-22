@@ -1,6 +1,8 @@
 dataset/
 datasets_zips/
 preprocessed_data/
+data_splits/
+
 inference_results/
 inference_results_test/
 snapshots/
