@@ -83,21 +83,16 @@ function Fix-Filename {
     param([string]$filename)
     
     $base = [System.IO.Path]::GetFileNameWithoutExtension($filename)
-    $ext = [System.IO.Path]::GetExtension($filename)
     
-    # Normalize extension
-    if ($ext -match '\.(jpeg|png|bmp|JPEG|PNG|BMP)$') {
-        $ext = '.jpg'
-    } elseif ($ext -ne '.jpg') {
-        $ext = '.jpg'
-    }
+    # Remove spaces
+    $normalized = $base -replace '\s', ''
     
     # Convert underscores to hyphens
-    $normalized = $base -replace '_', '-'
+    $normalized = $normalized -replace '_', '-'
     $normalized = $normalized -replace '--+', '-'
     
-    # Try to match pattern
-    if ($normalized -match '^(.+?)-(\d+)-([A-Za-z]+)-(\d+)$') {
+    # Robust regex matching (searches within string)
+    if ($normalized -match '(23[A-Za-z0-9]+)-(\d+)-([A-Za-z]+)-(\d+)') {
         $usn = $matches[1]
         $personNum = $matches[2].PadLeft(2, '0')
         $emotionInput = $matches[3]
@@ -108,7 +103,8 @@ function Fix-Filename {
             return $null
         }
         
-        return "${usn}-${personNum}-${emotion}-${imageNum}${ext}"
+        # Always enforce .jpg extension
+        return "${usn}-${personNum}-${emotion}-${imageNum}.jpg"
     }
     
     return $null

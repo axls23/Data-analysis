@@ -19,8 +19,11 @@
 #>
 
 param(
-    [Parameter(Mandatory=$true, HelpMessage="Path to the dataset folder to organize")]
-    [string]$DatasetPath
+    [Parameter(Mandatory=$false, HelpMessage="Path to the dataset folder to organize")]
+    [string]$DatasetPath = "dataset",
+    
+    [Parameter(Mandatory=$false)]
+    [switch]$Recurse
 )
 
 # Define emotion mappings (code -> folder name)
@@ -43,135 +46,122 @@ if (-not (Test-Path $DatasetPath)) {
     exit 1
 }
 
+$DatasetPath = Resolve-Path $DatasetPath
+
+# Auto-enable recursion if targeting the root dataset folder
+if (-not $Recurse.IsPresent -and (Split-Path -Leaf $DatasetPath) -eq "dataset") {
+    Write-Host "Targeting root 'dataset' folder - Enabling recursive mode." -ForegroundColor Cyan
+    $Recurse = $true
+}
+
 Write-Host "=" * 70 -ForegroundColor Cyan
 Write-Host "DATASET ORGANIZER" -ForegroundColor Cyan
 Write-Host "=" * 70 -ForegroundColor Cyan
 Write-Host "Target folder: $DatasetPath" -ForegroundColor White
+Write-Host "Recurse: $($Recurse.IsPresent)" -ForegroundColor White
 Write-Host ""
 
-# Get absolute path
-$DatasetPath = Resolve-Path $DatasetPath
-
-# Check current structure
-$subdirs = Get-ChildItem -Path $DatasetPath -Directory -ErrorAction SilentlyContinue
-$images = Get-ChildItem -Path "$DatasetPath\*" -File -Include *.jpg,*.jpeg,*.png,*.bmp -ErrorAction SilentlyContinue
-
-Write-Host "Analysis:" -ForegroundColor Yellow
-Write-Host "  Subdirectories found: $($subdirs.Count)" -ForegroundColor White
-Write-Host "  Images in root: $($images.Count)" -ForegroundColor White
-Write-Host ""
-
-# Check if already organized
-$hasEmotionFolders = $false
-foreach ($dir in $subdirs) {
-    if ($ValidEmotions -contains $dir.Name.ToLower()) {
-        $hasEmotionFolders = $true
-        break
-    }
+# Collect folders to process
+$foldersToProcess = @()
+if ($Recurse) {
+    # Get all subdirectories (d1, d2, etc.)
+    $foldersToProcess = Get-ChildItem -Path $DatasetPath -Directory
+} else {
+    $foldersToProcess += Get-Item $DatasetPath
 }
 
-if ($hasEmotionFolders -and $images.Count -eq 0) {
-    Write-Host "✓ Dataset appears to be already organized into emotion folders." -ForegroundColor Green
-    Write-Host ""
-    Write-Host "Folder structure:" -ForegroundColor Yellow
-    foreach ($emotion in $ValidEmotions) {
-        $emotionPath = Join-Path $DatasetPath $emotion
-        if (Test-Path $emotionPath) {
-            $count = (Get-ChildItem -Path "$emotionPath\*" -File -Include *.jpg,*.jpeg,*.png,*.bmp, *.JPG).Count
-            Write-Host "  $emotion/: $count images" -ForegroundColor White
-        }
-    }
-    Write-Host ""
-    Write-Host "No action needed." -ForegroundColor Green
-    exit 0
-}
-
-# If images found in root, organize them
-if ($images.Count -gt 0) {
-    Write-Host "✓ Found $($images.Count) images in root folder. Organizing..." -ForegroundColor Yellow
-    Write-Host ""
+foreach ($currentFolder in $foldersToProcess) {
+    $folderPath = $currentFolder.FullName
+    $folderName = $currentFolder.Name
     
-    # Create emotion folders if they don't exist
-    foreach ($emotion in $ValidEmotions) {
-        $emotionPath = Join-Path $DatasetPath $emotion
-        if (-not (Test-Path $emotionPath)) {
-            New-Item -Path $emotionPath -ItemType Directory -Force | Out-Null
-            Write-Host "  [CREATED] $emotion/" -ForegroundColor Green
-        }
-    }
-    
-    Write-Host ""
-    Write-Host "Processing images..." -ForegroundColor Yellow
+    Write-Host "Processing: $folderName" -ForegroundColor Yellow
     Write-Host "-" * 70 -ForegroundColor Cyan
-    
-    $processedCount = 0
-    $skippedCount = 0
-    $errorCount = 0
-    
-    foreach ($image in $images) {
-        $filename = $image.Name
+
+    # Check current structure
+    $subdirs = Get-ChildItem -Path $folderPath -Directory -ErrorAction SilentlyContinue
+    $images = Get-ChildItem -Path "$folderPath\*" -File -Include *.jpg,*.jpeg,*.png,*.bmp -ErrorAction SilentlyContinue
+
+    # Check if already organized
+    $hasEmotionFolders = $false
+    foreach ($dir in $subdirs) {
+        if ($ValidEmotions -contains $dir.Name.ToLower()) {
+            $hasEmotionFolders = $true
+            break
+        }
+    }
+
+    if ($hasEmotionFolders -and $images.Count -eq 0) {
+        Write-Host "  [✓] Already organized." -ForegroundColor Green
+        continue
+    }
+
+    # If images found in root, organize them
+    if ($images.Count -gt 0) {
+        # Create emotion folders if they don't exist
+        foreach ($emotion in $ValidEmotions) {
+            $emotionPath = Join-Path $folderPath $emotion
+            if (-not (Test-Path $emotionPath)) {
+                New-Item -Path $emotionPath -ItemType Directory -Force | Out-Null
+            }
+        }
         
-        # Parse filename: <USN>-<PersonNumber>-<Emotion>-<ImageNumber>
-        # Example: 23BTRCL003-01-HA-01.jpg
-        if ($filename -match '^(.+?)-(\d+)-([A-Z]{2})-(\d+)\.(jpg|jpeg|png|bmp)$') {
-            $usn = $matches[1]
-            $personNum = $matches[2]
-            $emotionCode = $matches[3]
-            $imageNum = $matches[4]
-            $extension = $matches[5]
+        $processedCount = 0
+        $skippedCount = 0
+        $errorCount = 0
+        
+        foreach ($image in $images) {
+            $filename = $image.Name
             
-            # Map emotion code to folder name
-            if ($EmotionMap.ContainsKey($emotionCode)) {
-                $emotionFolder = $EmotionMap[$emotionCode]
-                $destPath = Join-Path $DatasetPath $emotionFolder
-                $destFile = Join-Path $destPath $filename
+            # Parse filename: <USN>-<PersonNumber>-<Emotion>-<ImageNumber>
+            # Example: 23BTRCL003-01-HA-01.jpg
+            if ($filename -match '^(.+?)-(\d+)-([A-Z]{2})-(\d+)\.(jpg|jpeg|png|bmp)$') {
+                $usn = $matches[1]
+                $personNum = $matches[2]
+                $emotionCode = $matches[3]
+                $imageNum = $matches[4]
+                $extension = $matches[5]
                 
-                try {
-                    Move-Item -Path $image.FullName -Destination $destFile -Force
-                    Write-Host "  [OK] $filename -> $emotionFolder/" -ForegroundColor Green
-                    $processedCount++
+                # Map emotion code to folder name
+                if ($EmotionMap.ContainsKey($emotionCode)) {
+                    $emotionFolder = $EmotionMap[$emotionCode]
+                    $destPath = Join-Path $folderPath $emotionFolder
+                    
+                    # Enforce .jpg extension
+                    $baseName = [System.IO.Path]::GetFileNameWithoutExtension($filename)
+                    $destFilename = "${baseName}.jpg"
+                    $destFile = Join-Path $destPath $destFilename
+                    
+                    try {
+                        Move-Item -Path $image.FullName -Destination $destFile -Force
+                        $processedCount++
+                    }
+                    catch {
+                        Write-Host "  [ERROR] Failed to move $filename`: $($_.Exception.Message)" -ForegroundColor Red
+                        $errorCount++
+                    }
                 }
-                catch {
-                    Write-Host "  [ERROR] Failed to move $filename`: $($_.Exception.Message)" -ForegroundColor Red
-                    $errorCount++
+                else {
+                    Write-Host "  [SKIP] Unknown emotion code '$emotionCode' in: $filename" -ForegroundColor Yellow
+                    $skippedCount++
                 }
             }
             else {
-                Write-Host "  [SKIP] Unknown emotion code '$emotionCode' in: $filename" -ForegroundColor Yellow
+                Write-Host "  [SKIP] Invalid naming format: $filename" -ForegroundColor Yellow
                 $skippedCount++
             }
         }
-        else {
-            Write-Host "  [SKIP] Invalid naming format: $filename" -ForegroundColor Yellow
-            $skippedCount++
-        }
+        
+        Write-Host "  Processed: $processedCount | Skipped: $skippedCount | Errors: $errorCount" -ForegroundColor White
     }
-    
-    Write-Host "-" * 70 -ForegroundColor Cyan
-    Write-Host ""
-    Write-Host "SUMMARY" -ForegroundColor Cyan
-    Write-Host "=" * 70 -ForegroundColor Cyan
-    Write-Host "  Images processed: $processedCount" -ForegroundColor Green
-    Write-Host "  Images skipped: $skippedCount" -ForegroundColor Yellow
-    Write-Host "  Errors: $errorCount" -ForegroundColor Red
-    Write-Host ""
-    
-    # Show final folder structure
-    Write-Host "Final folder structure:" -ForegroundColor Yellow
-    foreach ($emotion in $ValidEmotions) {
-        $emotionPath = Join-Path $DatasetPath $emotion
-        if (Test-Path $emotionPath) {
-            $count = (Get-ChildItem -Path "$emotionPath\*" -File -Include *.jpg,*.jpeg,*.png,*.bmp).Count
-            Write-Host "  $emotion/: $count images" -ForegroundColor White
-        }
+    else {
+        Write-Host "  [!] No images found in root and no emotion folders." -ForegroundColor Yellow
     }
-    
     Write-Host ""
-    Write-Host "✓ Organization complete!" -ForegroundColor Green
-}
-else {
-    Write-Host "⚠ No images found in root folder and no emotion folders detected." -ForegroundColor Yellow
-    Write-Host "  This folder may already be organized or empty." -ForegroundColor White
 }
 
 Write-Host "=" * 70 -ForegroundColor Cyan
+Write-Host "Organization complete!" -ForegroundColor Green
+Write-Host "=" * 70 -ForegroundColor Cyan
+exit 0
+
+# ...existing code...

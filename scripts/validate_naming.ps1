@@ -36,8 +36,8 @@
 #>
 
 param(
-    [Parameter(Mandatory=$true, HelpMessage="Path to the dataset folder")]
-    [string]$DatasetPath,
+    [Parameter(Mandatory=$false, HelpMessage="Path to the dataset folder")]
+    [string]$DatasetPath = "dataset",
     
     [Parameter(Mandatory=$false)]
     [switch]$DryRun,
@@ -92,6 +92,25 @@ function Normalize-Emotion {
             return $twoLetter
         }
     }
+
+    # Fallback: First letter match
+    if ($emotion.Length -ge 1) {
+        $first = $emotion.Substring(0, 1).ToUpper()
+        switch ($first) {
+            'A' { return 'AN' }
+            'D' { return 'DI' }
+            'F' { return 'FE' }
+            'H' { return 'HA' }
+            'N' { return 'NE' }
+            'S' { 
+                # Check for SU (Surprised), otherwise default to SA (Sad)
+                if ($emotion.Length -ge 2 -and $emotion.Substring(0, 2).ToUpper() -eq 'SU') {
+                    return 'SU'
+                }
+                return 'SA'
+            }
+        }
+    }
     
     return $null
 }
@@ -112,26 +131,37 @@ function Get-CorrectedFilename {
         $ext = '.jpg'
     }
     
+    # Remove spaces
+    $normalized = $base -replace '\s', ''
+
     # First, convert underscores to hyphens
-    $normalized = $base -replace '_', '-'
+    $normalized = $normalized -replace '_', '-'
     
     # Normalize multiple hyphens to single hyphen
     $normalized = $normalized -replace '--+', '-'
     
-    # Try to extract components using a very flexible pattern
-    # This matches any variation of separators and extracts the 4 main parts
-    if ($normalized -match '^(.+?)-(\d+)-([A-Za-z]+)-(\d+)$') {
+    # Try to extract components using a pattern that searches within the string
+    # Look for USN ending with 3 digits (or O's), followed by 3 groups separated by hyphens
+    # We allow 'O' in place of digits for PersonNum and ImageNum too
+    if ($normalized -match '([A-Za-z0-9]*[\dO]{3})-([\dO]+)-([A-Za-z]+)-([\dO]+)') {
         $usn = $matches[1]
-        $personNum = $matches[2]
+        # Fix O -> 0 in USN suffix (last 3 chars)
+        if ($usn.Length -ge 3) {
+            $suffix = $usn.Substring($usn.Length - 3).Replace('O', '0')
+            $prefix = $usn.Substring(0, $usn.Length - 3)
+            $usn = $prefix + $suffix
+        }
+
+        $personNum = $matches[2].Replace('O', '0')
         $emotionInput = $matches[3]
-        $imageNum = $matches[4]
+        $imageNum = $matches[4].Replace('O', '0')
         
         $hasIssues = $false
         
         # Check USN starts with 23
         if (-not $usn.StartsWith('23')) {
-            $issues.Value += "USN doesn't start with 23: $usn"
-            # Still try to fix it
+            $usn = "23$usn"
+            $issues.Value += "Prepended '23' to USN"
             $hasIssues = $true
         }
         
@@ -168,23 +198,17 @@ function Get-CorrectedFilename {
             $hasIssues = $true
         }
         
-        # Check if original had underscores
-        if ($base -match '_') {
-            $issues.Value += "Uses underscores instead of hyphens"
-            $hasIssues = $true
-        }
-        
-        # Check if extension needs normalization
-        if ($originalExt -ne '.jpg') {
-            $issues.Value += "Extension normalized to .jpg (was $originalExt)"
-            $hasIssues = $true
-        }
-        
-        # Build corrected name - STRICT FORMAT
+        # Check if original had underscores or spaces or extra text
         $correctedName = "${usn}-${personNumPadded}-${emotionNormalized}-${imageNumPadded}.jpg"
         
-        if ($hasIssues -or $filename -ne $correctedName) {
-            return $correctedName
+        if ($filename -ne $correctedName) {
+             if ($base -match '_') { $issues.Value += "Uses underscores" }
+             if ($base -match '\s') { $issues.Value += "Contains spaces" }
+             if ($originalExt -ne '.jpg') { $issues.Value += "Extension normalized to .jpg" }
+             
+             # If we are here, it means the filename is different, so we are renaming/fixing
+             $issues.Value += "Enforcing strict format (removing extra text/formatting)"
+             return $correctedName
         }
         
         return $null  # Already correct
@@ -202,6 +226,12 @@ if (-not (Test-Path $DatasetPath)) {
 }
 
 $DatasetPath = Resolve-Path $DatasetPath
+
+# Auto-enable recursion if targeting the root dataset folder
+if (-not $Recurse.IsPresent -and (Split-Path -Leaf $DatasetPath) -eq "dataset") {
+    Write-Host "Targeting root 'dataset' folder - Enabling recursive mode." -ForegroundColor Cyan
+    $Recurse = $true
+}
 
 Write-Host "=" * 70 -ForegroundColor Cyan
 Write-Host "NAMING CONVENTION VALIDATOR & FIXER" -ForegroundColor Cyan
@@ -247,6 +277,19 @@ foreach ($folder in $folders) {
     $folderName = $folder.FullName.Replace($DatasetPath, '').TrimStart('\')
     if ([string]::IsNullOrEmpty($folderName)) { $folderName = "root" }
     
+    # First pass: check if there are any issues
+    $hasIssues = $false
+    foreach ($image in $images) {
+        $issues = $null
+        $correctedName = Get-CorrectedFilename $image.Name ([ref]$issues)
+        if ($null -ne $correctedName -or $issues.Count -gt 0) {
+            $hasIssues = $true
+            break
+        }
+    }
+    
+    if (-not $hasIssues) { continue }
+    
     Write-Host "Processing: $folderName/ ($($images.Count) files)" -ForegroundColor Yellow
     Write-Host "-" * 70 -ForegroundColor Cyan
     
@@ -259,8 +302,7 @@ foreach ($folder in $folders) {
         
         if ($null -eq $correctedName) {
             if ($issues.Count -eq 0) {
-                # Already correct
-                Write-Host "  [✓] $oldName" -ForegroundColor Green
+                # Already correct - don't print
                 $totalCorrect++
             } else {
                 # Invalid - can't be fixed
@@ -304,6 +346,7 @@ foreach ($folder in $folders) {
     }
     Write-Host ""
 }
+
 
 Write-Host "=" * 70 -ForegroundColor Cyan
 Write-Host "SUMMARY" -ForegroundColor Cyan

@@ -52,6 +52,7 @@ warnings.filterwarnings('ignore')
 try:
     from ultralytics import YOLO
     YOLO_AVAILABLE = True
+
 except ImportError:
     YOLO_AVAILABLE = False
 
