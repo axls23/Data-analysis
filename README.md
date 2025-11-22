@@ -328,23 +328,6 @@ python test_models.py --quiet
 ✅ Parameter counting accuracy  
 ✅ GPU detection and utilization  
 
-### Hardware Requirements
-
-**Minimum:**
-- CPU: Any modern x86_64 processor
-- RAM: 8GB
-- Storage: 5GB for models and data
-
-**Recommended:**
-- GPU: NVIDIA GPU with 4GB+ VRAM (CUDA support)
-- RAM: 16GB
-- Storage: 10GB SSD
-
-**Our Test System:**
-- GPU: NVIDIA GeForce RTX 4060
-- PyTorch with CUDA 11.8
-- All models tested and validated
-
 ### Dependencies
 
 ```bash
