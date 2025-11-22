@@ -16,7 +16,3 @@ echo ======================================================================
 echo Inference complete! Check 'inference_results' folder for results.
 echo ======================================================================
 pause
-
-
-
-

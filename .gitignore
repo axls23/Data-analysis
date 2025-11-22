@@ -1,6 +1,9 @@
 dataset/
+datasets_zips/
 inference_results/
 inference_results_test/
 snapshots/
 __pycache__/
 
+.idea/
+pyproject.toml
