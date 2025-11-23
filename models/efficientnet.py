@@ -55,11 +55,19 @@ class EfficientNetB0Emotion(BaseEmotionModel):
     
     def _init_classifier(self):
         """Initialize classifier layer weights"""
-        for m in self.classifier.modules():
+        for idx, m in enumerate(self.classifier.modules()):
             if isinstance(m, nn.Linear):
-                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
-                if m.bias is not None:
-                    nn.init.constant_(m.bias, 0)
+                # Use smaller initialization for final output layer to prevent extreme logits
+                if idx == len(list(self.classifier.modules())) - 1:
+                    # Final layer: use smaller std for stable initial loss
+                    nn.init.normal_(m.weight, mean=0.0, std=0.01)
+                    if m.bias is not None:
+                        nn.init.constant_(m.bias, 0)
+                else:
+                    # Hidden layers: use kaiming for ReLU
+                    nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+                    if m.bias is not None:
+                        nn.init.constant_(m.bias, 0)
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """

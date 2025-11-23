@@ -49,7 +49,12 @@ class BaseEmotionModel(ABC, nn.Module):
         for param in self.backbone.parameters():
             param.requires_grad = False
         
-        print(f"[INFO] Frozen backbone layers")
+        # Set BatchNorm layers to eval mode to prevent updating running stats
+        for module in self.backbone.modules():
+            if isinstance(module, nn.BatchNorm2d):
+                module.eval()
+        
+        print(f"[INFO] Frozen backbone layers (including BatchNorm eval mode)")
     
     def unfreeze_backbone(self, num_layers: int = -1):
         """

@@ -54,9 +54,17 @@ class ResNet18Emotion(BaseEmotionModel):
         self._init_classifier()
     
     def _init_classifier(self):
-        """Initialize classifier layer weights"""
-        for m in self.classifier.modules():
-            if isinstance(m, nn.Linear):
+        """Initialize classifier layer weights - ResNet18"""
+        linear_layers = [m for m in self.classifier.modules() if isinstance(m, nn.Linear)]
+        for idx, m in enumerate(linear_layers):
+            # Use smaller initialization for final output layer to prevent extreme logits
+            if idx == len(linear_layers) - 1:
+                # Final layer: use smaller std for stable initial loss
+                nn.init.normal_(m.weight, mean=0.0, std=0.01)
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+            else:
+                # Hidden layers: use kaiming for ReLU
                 nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
                 if m.bias is not None:
                     nn.init.constant_(m.bias, 0)
@@ -152,9 +160,17 @@ class ResNet50Emotion(BaseEmotionModel):
         self._init_classifier()
     
     def _init_classifier(self):
-        """Initialize classifier layer weights"""
-        for m in self.classifier.modules():
-            if isinstance(m, nn.Linear):
+        """Initialize classifier layer weights - ResNet50"""
+        linear_layers = [m for m in self.classifier.modules() if isinstance(m, nn.Linear)]
+        for idx, m in enumerate(linear_layers):
+            # Use smaller initialization for final output layer to prevent extreme logits
+            if idx == len(linear_layers) - 1:
+                # Final layer: use smaller std for stable initial loss
+                nn.init.normal_(m.weight, mean=0.0, std=0.01)
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+            else:
+                # Hidden layers: use kaiming for ReLU
                 nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
                 if m.bias is not None:
                     nn.init.constant_(m.bias, 0)

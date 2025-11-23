@@ -1,0 +1,5 @@
+model,num_unfreeze,warmup_val_acc,epochs_trained,best_val_acc,best_val_loss,test_acc,test_loss
+mobilenet,2,0.2719,20,0.3625,1.6866,0.3354,1.6285
+efficientnet,2,0.2656,20,0.3500,1.6804,0.3537,1.6731
+resnet18,2,0.2594,20,0.5250,1.2887,0.5335,1.2496
+resnet50,2,0.3031,20,0.6312,1.0235,0.6646,1.0262

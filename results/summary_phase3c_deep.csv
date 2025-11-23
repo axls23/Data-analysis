@@ -1,0 +1,6 @@
+model,trainable_params,total_params,baseline_val_acc,epochs_trained,best_val_acc,best_val_loss,test_acc,test_loss
+mobilenet,160,160,0.4281,17,0.4906,1.5008,0.5244,1.4560
+mobilenet,160,160,0.4281,20,0.5469,1.3845,0.6067,1.3266
+efficientnet,215,215,0.5000,20,0.5719,1.3812,0.5762,1.3336
+resnet18,64,64,0.6469,11,0.7063,1.1757,0.6890,1.2022
+resnet50,163,163,0.5813,20,0.7219,1.1360,0.7439,1.0888
