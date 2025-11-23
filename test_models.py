@@ -12,7 +12,7 @@ Usage:
 
 import torch
 import argparse
-from models import create_model
+from models import create_model, list_available_models
 from config import NUM_CLASSES, INPUT_SIZE
 
 

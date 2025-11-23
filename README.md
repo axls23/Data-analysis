@@ -501,14 +501,85 @@ All models showed **healthy training characteristics**:
 - Test accuracy: 74.4%
 - **Conclusion**: Model generalizes well to unseen data
 
+## Phase 4: Evaluation & Visualization ✅ COMPLETE
+
+### Tools & Scripts
+
+**1. Comprehensive Model Evaluation** (`evaluate_models.py`)
+- Generates confusion matrices for all 4 models
+- Per-emotion precision, recall, F1-score
+- Model comparison visualizations (bar charts)
+- Detailed metrics export (JSON/CSV)
+
+**Usage**:
+```bash
+# Evaluate all models
+python evaluate_models.py --models all
+
+# Evaluate specific models with prediction export
+python evaluate_models.py --models resnet50,resnet18 --save_predictions
+
+# Different checkpoint stage
+python evaluate_models.py --models all --stage progressive
+```
+
+**2. CLI Inference Tool** (`predict.py`)
+- Single-image emotion prediction
+- Top-K predictions with confidence scores
+- Optional face detection and cropping
+- Visualization with probability bars
+
+**Usage**:
+```bash
+# Basic prediction
+python predict.py --image path/to/image.jpg --model resnet50
+
+# With face detection and visualization
+python predict.py --image test.jpg --model resnet18 --detect_face --visualize
+
+# Save visualization
+python predict.py --image face.png --model mobilenet --save_viz output.png
+```
+
+**3. Real-Time Webcam Demo** (`webcam_demo.py`)
+- Live emotion detection from webcam
+- Haar Cascade face detection
+- Color-coded emotion overlays
+- FPS counter and performance metrics
+- Screenshot capture capability
+
+**Usage**:
+```bash
+# Start webcam demo
+python webcam_demo.py --model resnet50
+
+# Custom camera and confidence threshold
+python webcam_demo.py --model resnet18 --camera 0 --threshold 0.5
+```
+
+**Controls**:
+- `q` - Quit demo
+- `s` - Save screenshot
+- `f` - Toggle face detection boxes
+
+### Visualization Outputs
+
+All visualizations are saved to `results/evaluation/`:
+- **Confusion Matrices**: `confusion_matrices/{model}_confusion_matrix.png`
+- **Model Comparison**: `model_comparison.png`
+- **Per-Emotion Metrics**: `per_emotion_metrics.png`
+- **Evaluation Metrics**: `evaluation_metrics.json`
+- **Predictions** (optional): `{model}_predictions.csv`
+
 ### Next Steps
 
-**Phase 4: Evaluation & Deployment** (Planned)
-- Generate confusion matrices for error analysis
-- Per-emotion accuracy breakdown
-- Real-time webcam inference demo
-- Model optimization (ONNX/TFLite conversion)
-- Deployment on edge devices
+**Phase 5: Deployment & Optimization** (Future)
+- Convert models to ONNX/TorchScript for production
+- Quantization for faster inference
+- Model pruning to reduce size
+- Multi-face detection support
+- Temporal emotion tracking (video analysis)
+- Ensemble predictions from multiple models
 
 ---
 
@@ -517,8 +588,8 @@ All models showed **healthy training characteristics**:
 ```
 edl-project_facial-emotion-detection/
 ├── dataset/                       # Raw dataset
-├── preprocessed_data/             # Preprocessed images (Phase 1)
-├── data_splits/                   # Train/val/test splits (Phase 1)
+├── preprocessed_data/             # Preprocessed images (Phase 1) ✅
+├── data_splits/                   # Train/val/test splits (Phase 1) ✅
 ├── models/                        # Model architectures (Phase 2) ✅
 │   ├── __init__.py
 │   ├── base_model.py             # Abstract base class
@@ -528,17 +599,39 @@ edl-project_facial-emotion-detection/
 │   └── model_factory.py          # Factory pattern
 ├── config/                        # Configuration (Phase 2) ✅
 │   ├── __init__.py
-│   └── model_config.py           # Hyperparameters
+│   └── model_config.py           # Hyperparameters & augmentation
+├── utils/                         # Training utilities (Phase 3) ✅
+│   ├── data_loader.py            # Dataset loading & augmentation
+│   ├── losses.py                 # Loss functions (label smoothing)
+│   ├── monitoring.py             # Training monitoring & visualization
+│   └── trainer.py                # Training loop & validation
+├── results/                       # Training & evaluation outputs ✅
+│   ├── checkpoints/              # Trained model weights (.pt files)
+│   ├── logs/                     # Training logs (per model)
+│   ├── curves/                   # Training/validation curves
+│   ├── summary_phase3*.csv       # Training summaries
+│   └── evaluation/               # Phase 4 evaluation outputs ✅
+│       ├── confusion_matrices/   # Per-model confusion matrices
+│       ├── model_comparison.png  # Performance comparison charts
+│       ├── per_emotion_metrics.png
+│       └── evaluation_metrics.json
 ├── scripts/                       # PowerShell utility scripts
 │   ├── clean_mac_files.ps1
 │   ├── validate_naming.ps1
 │   ├── organize_dataset.ps1
 │   └── process_zip_datasets.ps1
-├── preprocess_dataset.py          # Image preprocessing pipeline
-├── split_dataset.py               # Dataset splitting pipeline
+├── preprocess_dataset.py          # Image preprocessing pipeline (Phase 1) ✅
+├── split_dataset.py               # Dataset splitting pipeline (Phase 1) ✅
+├── validate_training_setup.py     # Pre-training validation (Phase 1) ✅
+├── train_phase3a.py               # Stage 1: Warmup training (Phase 3) ✅
+├── train_phase3b_progressive.py   # Stage 2: Progressive fine-tuning (Phase 3) ✅
+├── train_phase3c_deep.py          # Stage 3: Deep fine-tuning (Phase 3) ✅
+├── evaluate_models.py             # Comprehensive evaluation (Phase 4) ✅
+├── predict.py                     # CLI inference tool (Phase 4) ✅
+├── webcam_demo.py                 # Real-time webcam demo (Phase 4) ✅
 ├── test_models.py                 # Model validation script (Phase 2) ✅
-├── expression-detection-optimized.py  # Training & inference (Phase 2+)
-├── PROJECT_TASKS.md               # Detailed project tasks
+├── expression-detection-optimized.py  # Legacy training script
+├── PROJECT_TASKS.md               # Detailed project tasks & status ✅
 ├── TRAINING_GUIDE.md              # Training documentation
 └── README.md                      # This file
 ```
