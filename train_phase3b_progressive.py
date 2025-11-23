@@ -39,7 +39,8 @@ from config import (
     USE_GPU, GPU_ID, DATA_SPLITS_DIR, FINETUNE_PATIENCE,
     MODEL_SPECIFIC_PARAMS, LABEL_SMOOTHING, COSINE_T_MAX, COSINE_ETA_MIN
 )
-from src.models import create_model
+
+from models import create_model
 from utils.data_loader import build_dataloaders
 from utils.losses import LabelSmoothingCrossEntropy
 from utils.monitoring import plot_training_curves, print_overfitting_report
@@ -216,7 +217,7 @@ def progressive_finetune_single(
     
     model = model.to(device)
     
-    # Loss function (with label smoothing)
+    # Loss function
     if use_label_smoothing:
         criterion = LabelSmoothingCrossEntropy(smoothing=LABEL_SMOOTHING)
         print(f"[LOSS] Using label smoothing with epsilon={LABEL_SMOOTHING}")
@@ -496,7 +497,7 @@ def main():
         print('No valid models specified.')
         return 1
     
-    results_dir = Path('../results')
+    results_dir = Path('results')
     summary_path = results_dir / 'summary_phase3b_progressive.csv'
     results_dir.mkdir(exist_ok=True)
     

@@ -26,4 +26,5 @@ __all__ = [
     'MODELS_DIR',
     'USE_GPU',
     'GPU_ID',
+    'IMAGE_SIZE',
 ]

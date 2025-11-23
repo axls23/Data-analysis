@@ -32,7 +32,7 @@ from config import (
     MODEL_SPECIFIC_PARAMS, LABEL_SMOOTHING, COSINE_T_MAX, COSINE_ETA_MIN,
     FINE_TUNE_LR
 )
-from src.models import create_model
+from models import create_model
 from utils.data_loader import build_dataloaders
 from utils.losses import LabelSmoothingCrossEntropy
 from utils.monitoring import plot_training_curves, print_overfitting_report
@@ -393,7 +393,7 @@ def main():
         print('No valid models specified.')
         return 1
     
-    results_dir = Path('../results')
+    results_dir = Path('results')
     summary_path = results_dir / 'summary_phase3c_deep.csv'
     results_dir.mkdir(exist_ok=True)
     

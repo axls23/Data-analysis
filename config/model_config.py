@@ -106,6 +106,14 @@ MODEL_SPECIFIC_PARAMS = {
 # Label smoothing for regularization (prevents overconfident predictions)
 LABEL_SMOOTHING = 0.1  # Smooth labels with 0.1 epsilon
 
+# Class weights for handling performance imbalance
+# Based on observed F1 scores: neutral (47-70%), fear (55-62%), sad (63-75%)
+# Order: ['angry', 'disgust', 'fear', 'happy', 'neutral', 'sad', 'surprised']
+CLASS_WEIGHTS = [1.0, 1.0, 1.0, 1.0, 1.5, 1.2, 1.0]
+# neutral: 1.5x (worst performer, critical for improvement)
+# sad: 1.2x (moderate underperformer)
+# others: 1.0x (adequate performance)
+
 # Cosine annealing learning rate schedule for fine-tuning
 COSINE_T_MAX = 15  # Cosine annealing period (epochs)
 COSINE_ETA_MIN = 1e-6  # Minimum learning rate for cosine annealing (increased from 1e-7)

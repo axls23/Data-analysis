@@ -68,7 +68,7 @@ def get_device():
     return torch.device('cpu')
 
 
-def detect_face(image_path: Path) -> np.ndarray | None:
+def detect_face(image_path: Path, verbose: bool = True) -> np.ndarray | None:
     """Detect and crop face from image using OpenCV Haar Cascade."""
     try:
         # Load cascade
@@ -78,7 +78,8 @@ def detect_face(image_path: Path) -> np.ndarray | None:
         # Read image
         img = cv2.imread(str(image_path))
         if img is None:
-            print(f"[WARNING] Could not read image: {image_path}")
+            if verbose:
+                print(f"[WARNING] Could not read image: {image_path}")
             return None
         
         # Convert to grayscale for detection
@@ -88,7 +89,8 @@ def detect_face(image_path: Path) -> np.ndarray | None:
         faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
         
         if len(faces) == 0:
-            print("[WARNING] No face detected in image. Using full image.")
+            if verbose:
+                print("[WARNING] No face detected in image. Using full image.")
             return cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         
         # Use largest face
@@ -104,11 +106,13 @@ def detect_face(image_path: Path) -> np.ndarray | None:
         face_img = img[y1:y2, x1:x2]
         face_img = cv2.cvtColor(face_img, cv2.COLOR_BGR2RGB)
         
-        print(f"✓ Face detected at ({x}, {y}) with size {w}x{h}")
+        if verbose:
+            print(f"✓ Face detected at ({x}, {y}) with size {w}x{h}")
         return face_img
     
     except Exception as e:
-        print(f"[ERROR] Face detection failed: {e}")
+        if verbose:
+            print(f"[ERROR] Face detection failed: {e}")
         return None
 
 
@@ -171,7 +175,7 @@ def load_ensemble_models(model_names: List[str], checkpoint_dir: Path, device) -
     return ensemble
 
 
-def preprocess_image(image_path: Path, detect_face_flag: bool = False) -> Tuple[torch.Tensor, str]:
+def preprocess_image(image_path: Path, detect_face_flag: bool = False, verbose: bool = True) -> Tuple[torch.Tensor, str]:
     """Load and preprocess image for model input.
     
     Returns:
@@ -181,7 +185,7 @@ def preprocess_image(image_path: Path, detect_face_flag: bool = False) -> Tuple[
     
     # Detect face if requested
     if detect_face_flag:
-        face_img = detect_face(image_path)
+        face_img = detect_face(image_path, verbose=verbose)
         if face_img is not None:
             img = Image.fromarray(face_img)
             status = "Face detected and cropped"
@@ -472,19 +476,21 @@ def parse_args():
                        help='Save results to CSV file')
     parser.add_argument('--output_dir', type=str, default='ensemble_results',
                        help='Output directory for batch processing results (default: ensemble_results)')
+    parser.add_argument('--quiet', action='store_true',
+                       help='Suppress verbose output during batch processing')
     
     return parser.parse_args()
 
 
 def process_single_image(image_path: Path, ensemble: Dict, device, weights: Dict,
-                        detect_face_flag: bool, visualize: bool, save_viz_path: Path = None) -> Dict:
+                        detect_face_flag: bool, visualize: bool, save_viz_path: Path = None, verbose: bool = True) -> Dict:
     """Process a single image and return results.
     
     Returns:
         Dictionary with prediction results
     """
     # Preprocess image
-    img_tensor, preprocessing_status = preprocess_image(image_path, detect_face_flag)
+    img_tensor, preprocessing_status = preprocess_image(image_path, detect_face_flag, verbose=verbose)
     
     # Run inference
     individual_results = run_ensemble_inference(ensemble, img_tensor, device)
@@ -509,7 +515,7 @@ def process_single_image(image_path: Path, ensemble: Dict, device, weights: Dict
 
 
 def process_folder(folder_path: Path, ensemble: Dict, device, weights: Dict,
-                   detect_face_flag: bool, visualize: bool, output_dir: Path) -> List[Dict]:
+                   detect_face_flag: bool, visualize: bool, output_dir: Path, verbose: bool = True) -> List[Dict]:
     """Process all images in a folder.
     
     Returns:
@@ -517,11 +523,13 @@ def process_folder(folder_path: Path, ensemble: Dict, device, weights: Dict,
     """
     # Find all image files
     image_extensions = {'.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.webp'}
-    image_files = []
+    image_files = set()
     
     for ext in image_extensions:
-        image_files.extend(folder_path.glob(f'*{ext}'))
-        image_files.extend(folder_path.glob(f'*{ext.upper()}'))
+        image_files.update(folder_path.glob(f'*{ext}'))
+        image_files.update(folder_path.glob(f'*{ext.upper()}'))
+    
+    image_files = sorted(list(image_files))
     
     if not image_files:
         print(f"[WARNING] No images found in {folder_path}")
@@ -549,18 +557,19 @@ def process_folder(folder_path: Path, ensemble: Dict, device, weights: Dict,
             # Process image
             result = process_single_image(
                 image_path, ensemble, device, weights,
-                detect_face_flag, visualize, save_viz_path
+                detect_face_flag, visualize, save_viz_path, verbose=verbose
             )
             
-            # Print detailed results for this image
-            print(f"\n{'='*70}")
-            print(f"Image {idx}/{len(image_files)}: {image_path.name}")
-            print(f"{'='*70}")
-            print_ensemble_results(image_path,
-                                  result['preprocessing_status'], 
-                                  result['individual_predictions'],
-                                  result['ensemble_prediction'],
-                                  weights)
+            # Print detailed results for this image only in verbose mode
+            if verbose:
+                print(f"\n{'='*70}")
+                print(f"Image {idx}/{len(image_files)}: {image_path.name}")
+                print(f"{'='*70}")
+                print_ensemble_results(image_path,
+                                      result['preprocessing_status'], 
+                                      result['individual_predictions'],
+                                      result['ensemble_prediction'],
+                                      weights)
             
             all_results.append(result)
             
@@ -748,11 +757,12 @@ def main():
             return 1
         
         output_dir = Path(args.output_dir)
+        verbose = not args.quiet
         
         # Process all images
         results = process_folder(
             folder_path, ensemble, device, weights,
-            args.detect_face, args.visualize, output_dir
+            args.detect_face, args.visualize, output_dir, verbose=verbose
         )
         
         if not results:

@@ -4,13 +4,13 @@ Dataset Preprocessing Pipeline
 
 This script implements Phase 1 of the Facial Emotion Detection project:
 1. Data Cleaning - Validate and remove corrupted images
-2. Face Detection & Cropping - Extract face regions using Haar Cascade or MTCNN
+2. Face Detection & Cropping - Extract face regions using MTCNN
 3. Resize - Standardize all images to 224x224 pixels
 4. Quality Control - Verify face detection quality
 
 Usage:
     python preprocess_dataset.py --input_dir dataset --output_dir preprocessed_data
-    python preprocess_dataset.py --input_dir dataset --output_dir preprocessed_data --detector mtcnn
+    python preprocess_dataset.py --input_dir dataset --output_dir preprocessed_data --margin 0.3
     python preprocess_dataset.py --help
 
 Author: AI Assistant
@@ -25,16 +25,16 @@ from PIL import Image
 from pathlib import Path
 from tqdm import tqdm
 import json
-import shutil
 import torch
 
-# Optional: MTCNN for better face detection
+# MTCNN for face detection
 try:
     from facenet_pytorch import MTCNN
-    MTCNN_AVAILABLE = True
+    
 except ImportError:
-    MTCNN_AVAILABLE = False
-    print("[INFO] MTCNN not available. Using Haar Cascade. Install with: pip install facenet-pytorch")
+    raise ImportError(
+        "MTCNN is required for preprocessing. Install with: pip install facenet-pytorch"
+    )
 
 
 def get_device_info():
@@ -72,45 +72,28 @@ def get_device_info():
 
 
 class FaceDetector:
-    """Unified face detection interface supporting multiple backends"""
+    """MTCNN-based face detector for high-quality face detection"""
     
-    def __init__(self, method='haar', device_info=None):
+    def __init__(self, device_info=None):
         """
-        Initialize face detector
+        Initialize MTCNN face detector
         
         Args:
-            method: 'haar' or 'mtcnn'
             device_info: Device information dict with 'device' key
         """
-        self.method = method
         self.device = device_info['device'] if device_info else 'cpu'
         
-        if method == 'mtcnn':
-            if not MTCNN_AVAILABLE:
-                print("[WARNING] MTCNN not available, falling back to Haar Cascade")
-                self.method = 'haar'
-                self._init_haar()
-            else:
-                self.detector = MTCNN(
-                    image_size=224,
-                    margin=20,
-                    keep_all=False,
-                    post_process=False,
-                    device=self.device
-                )
-        else:
-            self._init_haar()
-    
-    def _init_haar(self):
-        """Initialize Haar Cascade detector"""
-        cascade_path = cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
-        self.detector = cv2.CascadeClassifier(cascade_path)
-        if self.detector.empty():
-            raise RuntimeError("Failed to load Haar Cascade classifier")
+        self.detector = MTCNN(
+            image_size=224,
+            margin=20,
+            keep_all=False,
+            post_process=False,
+            device=self.device
+        )
     
     def detect_face(self, image):
         """
-        Detect face in image
+        Detect face in image using MTCNN
         
         Args:
             image: PIL Image or numpy array (BGR)
@@ -123,10 +106,7 @@ class FaceDetector:
         if isinstance(image, Image.Image):
             image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
         
-        if self.method == 'mtcnn':
-            return self._detect_mtcnn(image)
-        else:
-            return self._detect_haar(image)
+        return self._detect_mtcnn(image)
     
     def _detect_mtcnn(self, image):
         """Detect face using MTCNN"""
@@ -147,31 +127,6 @@ class FaceDetector:
             w, h = x2 - x, y2 - y
             
             return True, (x, y, w, h), float(prob)
-        
-        return False, None, None
-    
-    def _detect_haar(self, image):
-        """Detect face using Haar Cascade"""
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        
-        # Detect faces
-        faces = self.detector.detectMultiScale(
-            gray,
-            scaleFactor=1.1,
-            minNeighbors=5,
-            minSize=(30, 30)
-        )
-        
-        if len(faces) > 0:
-            # Get largest face
-            areas = [w * h for (x, y, w, h) in faces]
-            largest_idx = np.argmax(areas)
-            x, y, w, h = faces[largest_idx]
-            
-            # Haar Cascade doesn't provide confidence, use face size as proxy
-            confidence = min(1.0, (w * h) / (image.shape[0] * image.shape[1] * 0.5))
-            
-            return True, (x, y, w, h), confidence
         
         return False, None, None
 
@@ -285,15 +240,14 @@ def preprocess_image(image_path, output_path, detector, margin=0.2, target_size=
     return True, "Success", confidence
 
 
-def process_dataset(input_dir, output_dir, detector_method='haar', margin=0.2, 
+def process_dataset(input_dir, output_dir, margin=0.2, 
                     target_size=(224, 224), skip_existing=False, device_info=None):
     """
-    Process entire dataset
+    Process entire dataset using MTCNN face detection
     
     Args:
         input_dir: Input dataset directory
         output_dir: Output directory for preprocessed images
-        detector_method: 'haar' or 'mtcnn'
         margin: Margin around detected face
         target_size: Target image size
         skip_existing: Skip already processed images
@@ -305,9 +259,9 @@ def process_dataset(input_dir, output_dir, detector_method='haar', margin=0.2,
     input_path = Path(input_dir)
     output_path = Path(output_dir)
     
-    # Initialize detector
-    print(f"[INFO] Initializing {detector_method.upper()} face detector on {device_info['name']}...")
-    detector = FaceDetector(method=detector_method, device_info=device_info)
+    # Initialize MTCNN detector
+    print(f"[INFO] Initializing MTCNN face detector on {device_info['name']}...")
+    detector = FaceDetector(device_info=device_info)
     
     # Find all images in emotion folders
     emotion_folders = ['angry', 'disgust', 'fear', 'happy', 'neutral', 'sad', 'surprised']
@@ -439,18 +393,18 @@ def print_statistics(stats):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Preprocess facial emotion detection dataset - Phase 1",
+        description="Preprocess facial emotion detection dataset using MTCNN - Phase 1",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Basic usage with Haar Cascade
+  # Basic usage
   python preprocess_dataset.py --input_dir dataset --output_dir preprocessed_data
-  
-  # Use MTCNN for better face detection
-  python preprocess_dataset.py --input_dir dataset --output_dir preprocessed_data --detector mtcnn
   
   # Custom margin and target size
   python preprocess_dataset.py --input_dir dataset --output_dir preprocessed_data --margin 0.3 --size 256
+  
+  # Skip already processed images
+  python preprocess_dataset.py --input_dir dataset --output_dir preprocessed_data --skip_existing
         """
     )
     
@@ -458,8 +412,6 @@ Examples:
                        help='Input dataset directory (default: dataset)')
     parser.add_argument('--output_dir', type=str, default='preprocessed_data',
                        help='Output directory for preprocessed images (default: preprocessed_data)')
-    parser.add_argument('--detector', type=str, default='haar', choices=['haar', 'mtcnn'],
-                       help='Face detection method (default: haar)')
     parser.add_argument('--margin', type=float, default=0.2,
                        help='Margin around detected face (default: 0.2)')
     parser.add_argument('--size', type=int, default=224,
@@ -478,11 +430,11 @@ Examples:
         return 1
     
     print("="*70)
-    print("FACIAL EMOTION DETECTION - DATASET PREPROCESSING")
+    print("FACIAL EMOTION DETECTION - DATASET PREPROCESSING (MTCNN)")
     print("="*70)
     print(f"Input directory:  {args.input_dir}")
     print(f"Output directory: {args.output_dir}")
-    print(f"Face detector:    {args.detector.upper()}")
+    print(f"Face detector:    MTCNN")
     print(f"Compute device:   {device_info['name']}")
     if device_info['gpu_available']:
         print(f"GPU available:    Yes ({device_info['device_count']} GPU(s))")
@@ -495,7 +447,6 @@ Examples:
     stats = process_dataset(
         input_dir=args.input_dir,
         output_dir=args.output_dir,
-        detector_method=args.detector,
         margin=args.margin,
         target_size=(args.size, args.size),
         skip_existing=args.skip_existing,

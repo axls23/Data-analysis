@@ -16,13 +16,12 @@ import math
 import torch
 import torch.nn as nn
 from torch.optim import Adam
-from pathlib import Path
 
 from config import (
-    NUM_CLASSES, LEARNING_RATE, WEIGHT_DECAY, BATCH_SIZE, 
+    NUM_CLASSES, LEARNING_RATE, BATCH_SIZE,
     USE_GPU, GPU_ID, DATA_SPLITS_DIR
 )
-from src.models import create_model
+from models import create_model
 from utils.data_loader import build_dataloaders, IMAGENET_MEAN, IMAGENET_STD
 
 

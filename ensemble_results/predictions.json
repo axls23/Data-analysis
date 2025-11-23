@@ -1,0 +1,723 @@
+[
+  {
+    "image_name": "test1.jpg",
+    "image_path": "test_images\\test1.jpg",
+    "preprocessing_status": "Face detected and cropped",
+    "ensemble_prediction": {
+      "prediction": "angry",
+      "confidence": 0.8520723313093186,
+      "top3": [
+        [
+          "angry",
+          0.8520723313093186
+        ],
+        [
+          "neutral",
+          0.04577035512775183
+        ],
+        [
+          "sad",
+          0.045204385858960444
+        ]
+      ],
+      "weights_used": {
+        "mobilenet": 0.15,
+        "efficientnet": 0.15,
+        "resnet18": 0.3,
+        "resnet50": 0.4
+      }
+    },
+    "individual_predictions": {
+      "mobilenet": {
+        "prediction": "angry",
+        "confidence": 0.558408796787262,
+        "top3": [
+          [
+            "angry",
+            0.558408796787262
+          ],
+          [
+            "neutral",
+            0.17357014119625092
+          ],
+          [
+            "sad",
+            0.16156414151191711
+          ]
+        ]
+      },
+      "efficientnet": {
+        "prediction": "angry",
+        "confidence": 0.6535851955413818,
+        "top3": [
+          [
+            "angry",
+            0.6535851955413818
+          ],
+          [
+            "sad",
+            0.11728037893772125
+          ],
+          [
+            "neutral",
+            0.10419119149446487
+          ]
+        ]
+      },
+      "resnet18": {
+        "prediction": "angry",
+        "confidence": 0.9705405235290527,
+        "top3": [
+          [
+            "angry",
+            0.9705405235290527
+          ],
+          [
+            "fear",
+            0.01043446734547615
+          ],
+          [
+            "disgust",
+            0.006909566465765238
+          ]
+        ]
+      },
+      "resnet50": {
+        "prediction": "angry",
+        "confidence": 0.9477776885032654,
+        "top3": [
+          [
+            "angry",
+            0.9477776885032654
+          ],
+          [
+            "fear",
+            0.019748810678720474
+          ],
+          [
+            "disgust",
+            0.01719345711171627
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "image_name": "test2.jpg",
+    "image_path": "test_images\\test2.jpg",
+    "preprocessing_status": "Face detected and cropped",
+    "ensemble_prediction": {
+      "prediction": "disgust",
+      "confidence": 0.5214522697031498,
+      "top3": [
+        [
+          "disgust",
+          0.5214522697031498
+        ],
+        [
+          "sad",
+          0.260714815557003
+        ],
+        [
+          "fear",
+          0.06787643479183315
+        ]
+      ],
+      "weights_used": {
+        "mobilenet": 0.15,
+        "efficientnet": 0.15,
+        "resnet18": 0.3,
+        "resnet50": 0.4
+      }
+    },
+    "individual_predictions": {
+      "mobilenet": {
+        "prediction": "sad",
+        "confidence": 0.5289584398269653,
+        "top3": [
+          [
+            "sad",
+            0.5289584398269653
+          ],
+          [
+            "disgust",
+            0.16449297964572906
+          ],
+          [
+            "fear",
+            0.0974072739481926
+          ]
+        ]
+      },
+      "efficientnet": {
+        "prediction": "sad",
+        "confidence": 0.25945109128952026,
+        "top3": [
+          [
+            "sad",
+            0.25945109128952026
+          ],
+          [
+            "disgust",
+            0.25803372263908386
+          ],
+          [
+            "fear",
+            0.15027908980846405
+          ]
+        ]
+      },
+      "resnet18": {
+        "prediction": "disgust",
+        "confidence": 0.8466693758964539,
+        "top3": [
+          [
+            "disgust",
+            0.8466693758964539
+          ],
+          [
+            "sad",
+            0.0926932543516159
+          ],
+          [
+            "angry",
+            0.0310140922665596
+          ]
+        ]
+      },
+      "resnet50": {
+        "prediction": "disgust",
+        "confidence": 0.5101811289787292,
+        "top3": [
+          [
+            "disgust",
+            0.5101811289787292
+          ],
+          [
+            "sad",
+            0.2866135239601135
+          ],
+          [
+            "fear",
+            0.06945754587650299
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "image_name": "test3.jpg",
+    "image_path": "test_images\\test3.jpg",
+    "preprocessing_status": "Face detected and cropped",
+    "ensemble_prediction": {
+      "prediction": "fear",
+      "confidence": 0.852751362323761,
+      "top3": [
+        [
+          "fear",
+          0.852751362323761
+        ],
+        [
+          "surprised",
+          0.07950318232178688
+        ],
+        [
+          "sad",
+          0.021838129777461288
+        ]
+      ],
+      "weights_used": {
+        "mobilenet": 0.15,
+        "efficientnet": 0.15,
+        "resnet18": 0.3,
+        "resnet50": 0.4
+      }
+    },
+    "individual_predictions": {
+      "mobilenet": {
+        "prediction": "fear",
+        "confidence": 0.6319742798805237,
+        "top3": [
+          [
+            "fear",
+            0.6319742798805237
+          ],
+          [
+            "surprised",
+            0.1657710075378418
+          ],
+          [
+            "sad",
+            0.08931557089090347
+          ]
+        ]
+      },
+      "efficientnet": {
+        "prediction": "fear",
+        "confidence": 0.7185084223747253,
+        "top3": [
+          [
+            "fear",
+            0.7185084223747253
+          ],
+          [
+            "surprised",
+            0.19569890201091766
+          ],
+          [
+            "angry",
+            0.033259399235248566
+          ]
+        ]
+      },
+      "resnet18": {
+        "prediction": "fear",
+        "confidence": 0.8914721012115479,
+        "top3": [
+          [
+            "fear",
+            0.8914721012115479
+          ],
+          [
+            "surprised",
+            0.05519658327102661
+          ],
+          [
+            "neutral",
+            0.019892532378435135
+          ]
+        ]
+      },
+      "resnet50": {
+        "prediction": "fear",
+        "confidence": 0.9568433165550232,
+        "top3": [
+          [
+            "fear",
+            0.9568433165550232
+          ],
+          [
+            "surprised",
+            0.021809302270412445
+          ],
+          [
+            "neutral",
+            0.0066991886124014854
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "image_name": "test4.jpg",
+    "image_path": "test_images\\test4.jpg",
+    "preprocessing_status": "Face detected and cropped",
+    "ensemble_prediction": {
+      "prediction": "happy",
+      "confidence": 0.7420617252588273,
+      "top3": [
+        [
+          "happy",
+          0.7420617252588273
+        ],
+        [
+          "disgust",
+          0.10494052432477474
+        ],
+        [
+          "neutral",
+          0.03819601610302925
+        ]
+      ],
+      "weights_used": {
+        "mobilenet": 0.15,
+        "efficientnet": 0.15,
+        "resnet18": 0.3,
+        "resnet50": 0.4
+      }
+    },
+    "individual_predictions": {
+      "mobilenet": {
+        "prediction": "happy",
+        "confidence": 0.37371140718460083,
+        "top3": [
+          [
+            "happy",
+            0.37371140718460083
+          ],
+          [
+            "disgust",
+            0.19406692683696747
+          ],
+          [
+            "sad",
+            0.11626268923282623
+          ]
+        ]
+      },
+      "efficientnet": {
+        "prediction": "happy",
+        "confidence": 0.6002384424209595,
+        "top3": [
+          [
+            "happy",
+            0.6002384424209595
+          ],
+          [
+            "disgust",
+            0.12422945350408554
+          ],
+          [
+            "neutral",
+            0.08824232220649719
+          ]
+        ]
+      },
+      "resnet18": {
+        "prediction": "happy",
+        "confidence": 0.7943546772003174,
+        "top3": [
+          [
+            "happy",
+            0.7943546772003174
+          ],
+          [
+            "disgust",
+            0.14519748091697693
+          ],
+          [
+            "surprised",
+            0.01876898854970932
+          ]
+        ]
+      },
+      "resnet50": {
+        "prediction": "happy",
+        "confidence": 0.8941571116447449,
+        "top3": [
+          [
+            "happy",
+            0.8941571116447449
+          ],
+          [
+            "disgust",
+            0.03409205749630928
+          ],
+          [
+            "neutral",
+            0.029597222805023193
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "image_name": "test5.png",
+    "image_path": "test_images\\test5.png",
+    "preprocessing_status": "Face detected and cropped",
+    "ensemble_prediction": {
+      "prediction": "neutral",
+      "confidence": 0.43489466458559034,
+      "top3": [
+        [
+          "neutral",
+          0.43489466458559034
+        ],
+        [
+          "fear",
+          0.23025837466120722
+        ],
+        [
+          "surprised",
+          0.10863736076280475
+        ]
+      ],
+      "weights_used": {
+        "mobilenet": 0.15,
+        "efficientnet": 0.15,
+        "resnet18": 0.3,
+        "resnet50": 0.4
+      }
+    },
+    "individual_predictions": {
+      "mobilenet": {
+        "prediction": "neutral",
+        "confidence": 0.4308246374130249,
+        "top3": [
+          [
+            "neutral",
+            0.4308246374130249
+          ],
+          [
+            "sad",
+            0.21620023250579834
+          ],
+          [
+            "fear",
+            0.14386382699012756
+          ]
+        ]
+      },
+      "efficientnet": {
+        "prediction": "neutral",
+        "confidence": 0.3382439911365509,
+        "top3": [
+          [
+            "neutral",
+            0.3382439911365509
+          ],
+          [
+            "fear",
+            0.19246630370616913
+          ],
+          [
+            "sad",
+            0.18068824708461761
+          ]
+        ]
+      },
+      "resnet18": {
+        "prediction": "fear",
+        "confidence": 0.3768231272697449,
+        "top3": [
+          [
+            "fear",
+            0.3768231272697449
+          ],
+          [
+            "neutral",
+            0.3338238298892975
+          ],
+          [
+            "surprised",
+            0.13463082909584045
+          ]
+        ]
+      },
+      "resnet50": {
+        "prediction": "neutral",
+        "confidence": 0.5484680533409119,
+        "top3": [
+          [
+            "neutral",
+            0.5484680533409119
+          ],
+          [
+            "fear",
+            0.16690479218959808
+          ],
+          [
+            "surprised",
+            0.14229550957679749
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "image_name": "test6.jpg",
+    "image_path": "test_images\\test6.jpg",
+    "preprocessing_status": "Face detected and cropped",
+    "ensemble_prediction": {
+      "prediction": "sad",
+      "confidence": 0.4278308108448982,
+      "top3": [
+        [
+          "sad",
+          0.4278308108448982
+        ],
+        [
+          "neutral",
+          0.2553779825568199
+        ],
+        [
+          "angry",
+          0.14443115293979644
+        ]
+      ],
+      "weights_used": {
+        "mobilenet": 0.15,
+        "efficientnet": 0.15,
+        "resnet18": 0.3,
+        "resnet50": 0.4
+      }
+    },
+    "individual_predictions": {
+      "mobilenet": {
+        "prediction": "sad",
+        "confidence": 0.4257188141345978,
+        "top3": [
+          [
+            "sad",
+            0.4257188141345978
+          ],
+          [
+            "neutral",
+            0.28128838539123535
+          ],
+          [
+            "angry",
+            0.15591399371623993
+          ]
+        ]
+      },
+      "efficientnet": {
+        "prediction": "neutral",
+        "confidence": 0.4182611405849457,
+        "top3": [
+          [
+            "neutral",
+            0.4182611405849457
+          ],
+          [
+            "angry",
+            0.20029424130916595
+          ],
+          [
+            "fear",
+            0.17235490679740906
+          ]
+        ]
+      },
+      "resnet18": {
+        "prediction": "sad",
+        "confidence": 0.6180984377861023,
+        "top3": [
+          [
+            "sad",
+            0.6180984377861023
+          ],
+          [
+            "angry",
+            0.12779410183429718
+          ],
+          [
+            "disgust",
+            0.12472018599510193
+          ]
+        ]
+      },
+      "resnet50": {
+        "prediction": "sad",
+        "confidence": 0.38241422176361084,
+        "top3": [
+          [
+            "sad",
+            0.38241422176361084
+          ],
+          [
+            "neutral",
+            0.3321397602558136
+          ],
+          [
+            "angry",
+            0.13165421783924103
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "image_name": "test7.jpg",
+    "image_path": "test_images\\test7.jpg",
+    "preprocessing_status": "Face detected and cropped",
+    "ensemble_prediction": {
+      "prediction": "surprised",
+      "confidence": 0.7123609155416488,
+      "top3": [
+        [
+          "surprised",
+          0.7123609155416488
+        ],
+        [
+          "fear",
+          0.14159667864441872
+        ],
+        [
+          "angry",
+          0.044711259892210364
+        ]
+      ],
+      "weights_used": {
+        "mobilenet": 0.15,
+        "efficientnet": 0.15,
+        "resnet18": 0.3,
+        "resnet50": 0.4
+      }
+    },
+    "individual_predictions": {
+      "mobilenet": {
+        "prediction": "surprised",
+        "confidence": 0.7088746428489685,
+        "top3": [
+          [
+            "surprised",
+            0.7088746428489685
+          ],
+          [
+            "fear",
+            0.1879834085702896
+          ],
+          [
+            "neutral",
+            0.04190649092197418
+          ]
+        ]
+      },
+      "efficientnet": {
+        "prediction": "surprised",
+        "confidence": 0.6633187532424927,
+        "top3": [
+          [
+            "surprised",
+            0.6633187532424927
+          ],
+          [
+            "fear",
+            0.262766033411026
+          ],
+          [
+            "neutral",
+            0.025223150849342346
+          ]
+        ]
+      },
+      "resnet18": {
+        "prediction": "surprised",
+        "confidence": 0.6668064594268799,
+        "top3": [
+          [
+            "surprised",
+            0.6668064594268799
+          ],
+          [
+            "fear",
+            0.1304686963558197
+          ],
+          [
+            "angry",
+            0.06542131304740906
+          ]
+        ]
+      },
+      "resnet50": {
+        "prediction": "surprised",
+        "confidence": 0.7662249207496643,
+        "top3": [
+          [
+            "surprised",
+            0.7662249207496643
+          ],
+          [
+            "fear",
+            0.08710913360118866
+          ],
+          [
+            "angry",
+            0.05071999132633209
+          ]
+        ]
+      }
+    }
+  }
+]

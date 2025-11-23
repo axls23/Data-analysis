@@ -1,0 +1,50 @@
+{
+  "model_name": "mobilenet",
+  "architecture": "mobilenet",
+  "num_classes": 7,
+  "class_labels": [
+    "angry",
+    "disgust",
+    "fear",
+    "happy",
+    "neutral",
+    "sad",
+    "surprised"
+  ],
+  "input_shape": [
+    1,
+    3,
+    224,
+    224
+  ],
+  "preprocessing": {
+    "resize": [
+      224,
+      224
+    ],
+    "normalize": {
+      "mean": [
+        0.485,
+        0.456,
+        0.406
+      ],
+      "std": [
+        0.229,
+        0.224,
+        0.225
+      ]
+    },
+    "face_detection": "MTCNN or Haar Cascade recommended"
+  },
+  "training_info": {
+    "final_val_acc": 0.546875,
+    "final_test_acc": 0.0,
+    "epoch": 20
+  },
+  "benchmark": {},
+  "export_info": {
+    "onnx_opset": 14,
+    "dynamic_batch": true,
+    "torch_version": "2.9.1+cu130"
+  }
+}

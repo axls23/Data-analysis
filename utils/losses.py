@@ -25,17 +25,21 @@ class LabelSmoothingCrossEntropy(nn.Module):
                   0.0 = no smoothing (standard cross-entropy)
                   0.1 = recommended for most tasks
                   Higher values = more smoothing (use with caution)
+        weight: Class weights tensor (optional, shape: num_classes)
+                Used to handle class imbalance or performance-based weighting
         
     Example:
         >>> criterion = LabelSmoothingCrossEntropy(smoothing=0.1)
         >>> logits = model(inputs)
         >>> loss = criterion(logits, targets)
+        >>> criterion = LabelSmoothingCrossEntropy(smoothing=0.1, weight=weights)
     """
     
-    def __init__(self, smoothing: float = 0.1):
+    def __init__(self, smoothing: float = 0.1, weight: torch.Tensor = None):
         super().__init__()
         self.smoothing = smoothing
         self.confidence = 1.0 - smoothing
+        self.register_buffer('weight', weight)
     
     def forward(self, pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         """Compute label-smoothed cross-entropy loss.
@@ -63,6 +67,12 @@ class LabelSmoothingCrossEntropy(nn.Module):
         # Compute KL divergence between smooth distribution and model predictions
         # Equivalent to cross-entropy but with smoothed targets
         loss = torch.sum(-true_dist * log_probs, dim=-1)
+        
+        # Apply class weights if provided
+        if self.weight is not None:
+            # Get weight for each sample based on its target class
+            sample_weights = self.weight[target]
+            loss = loss * sample_weights
         
         return loss.mean()
 
@@ -130,6 +140,7 @@ def get_loss_function(loss_type: str = 'cross_entropy', **kwargs):
         loss_type: Type of loss ('cross_entropy', 'label_smoothing', 'focal')
         **kwargs: Additional arguments passed to loss constructor
                  - smoothing: for label_smoothing (default 0.1)
+                 - weight: class weights tensor for any loss type
                  - alpha, gamma: for focal loss
     
     Returns:
@@ -137,13 +148,17 @@ def get_loss_function(loss_type: str = 'cross_entropy', **kwargs):
     
     Example:
         >>> criterion = get_loss_function('label_smoothing', smoothing=0.1)
+        >>> weights = torch.tensor([1.0, 1.0, 1.2, 1.0, 1.5, 1.2, 1.0])
+        >>> criterion = get_loss_function('label_smoothing', smoothing=0.1, weight=weights)
         >>> criterion = get_loss_function('focal', alpha=1.0, gamma=2.0)
     """
+    weight = kwargs.get('weight', None)
+    
     if loss_type == 'cross_entropy':
-        return nn.CrossEntropyLoss()
+        return nn.CrossEntropyLoss(weight=weight)
     elif loss_type == 'label_smoothing':
         smoothing = kwargs.get('smoothing', 0.1)
-        return LabelSmoothingCrossEntropy(smoothing=smoothing)
+        return LabelSmoothingCrossEntropy(smoothing=smoothing, weight=weight)
     elif loss_type == 'focal':
         alpha = kwargs.get('alpha', 1.0)
         gamma = kwargs.get('gamma', 2.0)

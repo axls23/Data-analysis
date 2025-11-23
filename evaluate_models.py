@@ -20,11 +20,9 @@ import json
 import csv
 import numpy as np
 import torch
-import torch.nn as nn
-from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.metrics import confusion_matrix, classification_report, accuracy_score, precision_recall_fscore_support
+from sklearn.metrics import confusion_matrix, accuracy_score, precision_recall_fscore_support
 from tqdm import tqdm
 
 from config import EMOTION_LABELS, BATCH_SIZE, USE_GPU, GPU_ID, DATA_SPLITS_DIR

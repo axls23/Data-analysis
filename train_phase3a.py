@@ -22,7 +22,7 @@ import torch.nn as nn
 from torch.optim import Adam
 
 from config import NUM_EPOCHS_WARMUP, LEARNING_RATE, WEIGHT_DECAY, BATCH_SIZE, USE_GPU, GPU_ID, DATA_SPLITS_DIR, EARLY_STOPPING_PATIENCE
-from src.models import create_model
+from models import create_model
 from utils.data_loader import build_dataloaders
 from utils.trainer import Trainer
 
@@ -125,7 +125,7 @@ def main():
         print('No valid models specified.')
         return 1
 
-    results_dir = Path('../results')
+    results_dir = Path('results')
     summary_path = results_dir / 'summary_phase3a.csv'
     results_dir.mkdir(exist_ok=True)
 
